@@ -98,7 +98,7 @@ async function processDocument(docId: string, file: File) {
 
     // PDF
     if (file.type === "application/pdf") {
-      const pdfParse = (await import("pdf-parse")).default;
+      const pdfParse: any = await import("pdf-parse");
 
       const buffer = Buffer.from(await file.arrayBuffer());
 
