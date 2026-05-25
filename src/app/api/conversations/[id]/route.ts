@@ -6,36 +6,32 @@ import Conversation from "@/lib/db/models/Conversation";
 import Message from "@/lib/db/models/Message";
 import InferenceLog from "@/lib/db/models/InferenceLog";
 
-interface Params {
-  params: {
-    id: string;
-  };
-}
-
 // GET /api/conversations/[id]
-export async function GET(_req: NextRequest, { params }: Params) {
+export async function GET(
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> },
+) {
   const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { id } = await context.params;
+
   await connectDB();
 
   const conversation = await Conversation.findOne({
-    _id: params.id,
+    _id: id,
     userId,
   }).lean();
 
   if (!conversation) {
-    return NextResponse.json(
-      { error: "Conversation not found" },
-      { status: 404 },
-    );
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   const messages = await Message.find({
-    conversationId: params.id,
+    conversationId: id,
   })
     .sort({ createdAt: 1 })
     .lean();
@@ -47,12 +43,17 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 // PATCH /api/conversations/[id]
-export async function PATCH(req: NextRequest, { params }: Params) {
+export async function PATCH(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> },
+) {
   const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { id } = await context.params;
 
   await connectDB();
 
@@ -68,9 +69,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
   }
 
-  const updatedConversation = await Conversation.findOneAndUpdate(
+  const conversation = await Conversation.findOneAndUpdate(
     {
-      _id: params.id,
+      _id: id,
       userId,
     },
     {
@@ -81,46 +82,44 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     },
   );
 
-  if (!updatedConversation) {
-    return NextResponse.json(
-      { error: "Conversation not found" },
-      { status: 404 },
-    );
+  if (!conversation) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json(updatedConversation);
+  return NextResponse.json(conversation);
 }
 
 // DELETE /api/conversations/[id]
-export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function DELETE(
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> },
+) {
   const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { id } = await context.params;
+
   await connectDB();
 
-  const deletedConversation = await Conversation.findOneAndDelete({
-    _id: params.id,
+  const conversation = await Conversation.findOneAndDelete({
+    _id: id,
     userId,
   });
 
-  if (!deletedConversation) {
-    return NextResponse.json(
-      { error: "Conversation not found" },
-      { status: 404 },
-    );
+  if (!conversation) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  // Delete related messages + logs
   await Promise.all([
     Message.deleteMany({
-      conversationId: params.id,
+      conversationId: id,
     }),
 
     InferenceLog.deleteMany({
-      conversationId: params.id,
+      conversationId: id,
     }),
   ]);
 
