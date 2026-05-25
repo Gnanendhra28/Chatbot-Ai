@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
 
       provider: payload.provider,
 
-      model: payload.model,
+      modelname: payload.model,
 
       requestedAt: new Date(payload.requestedAt),
 
@@ -213,7 +213,7 @@ export async function POST(req: NextRequest) {
       {
         success: true,
 
-        logId: String(log._id),
+        logId: log?._id ? String(log._id) : null,
       },
       { status: 201 },
     );
