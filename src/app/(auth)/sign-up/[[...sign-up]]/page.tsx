@@ -39,6 +39,8 @@ export default function SignUpPage() {
           </h1>
         </div>
         <SignUp
+          afterSignInUrl="/chat"
+          afterSignUpUrl="/chat"
           appearance={{
             variables: {
               colorPrimary: "#00ff94",
