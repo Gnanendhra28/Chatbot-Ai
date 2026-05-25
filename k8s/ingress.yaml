@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: neurallog-ingress
+
+spec:
+  rules:
+    - host: neurallog.local
+
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+
+            backend:
+              service:
+                name: neurallog-service
+
+                port:
+                  number: 80
