@@ -193,6 +193,8 @@ ${message}
 
       status: "success",
 
+      modelname: "gemini-1.5-flash",
+
       stream: false,
 
       inputPreview: redactPII(message),
