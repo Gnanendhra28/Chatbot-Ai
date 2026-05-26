@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
 
-    const { userId } = auth();
+    const { userId } = await auth();
 
     if (!userId) {
       return NextResponse.json(

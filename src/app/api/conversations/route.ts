@@ -5,8 +5,9 @@ import Conversation from "@/lib/db/models/Conversation";
 
 // GET /api/conversations — list all for user
 export async function GET(req: NextRequest) {
-  const { userId } = auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { userId } = await auth();
+  if (!userId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
@@ -41,8 +42,9 @@ export async function GET(req: NextRequest) {
 
 // POST /api/conversations — create new
 export async function POST(req: NextRequest) {
-  const { userId } = auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { userId } = await auth();
+  if (!userId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
   await connectDB();

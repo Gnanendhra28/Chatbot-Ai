@@ -10,7 +10,7 @@ interface PageProps {
 }
 
 export default async function ConversationPage({ params }: PageProps) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return notFound();
 
   await connectDB();
