@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         userId,
         status: "active",
         provider: "groq",
-        model: safeModel,
+        modelname: "gemini-1.5-flash",
       });
     }
     // Save user message

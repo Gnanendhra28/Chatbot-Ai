@@ -1,32 +1,45 @@
 import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
+
 import { connectDB } from "@/lib/db/mongoose";
 import Conversation from "@/lib/db/models/Conversation";
 import Message from "@/lib/db/models/Message";
+
 import ChatInterface from "@/components/chat/ChatInterface";
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{
+    id: string;
+  }>;
 }
 
 export default async function ConversationPage({ params }: PageProps) {
+  const { id } = await params;
+
   const { userId } = await auth();
-  if (!userId) return notFound();
+
+  if (!userId) {
+    return notFound();
+  }
 
   await connectDB();
 
   const conversation = await Conversation.findOne({
-    _id: params.id,
+    _id: id,
     userId,
   }).lean();
 
-  if (!conversation) return notFound();
+  if (!conversation) {
+    return notFound();
+  }
 
-  const messages = await Message.find({ conversationId: params.id })
+  const messages = await Message.find({
+    conversationId: id,
+  })
     .sort({ createdAt: 1 })
     .lean();
 
-  const serializedMessages = messages.map((m) => ({
+  const serializedMessages = messages.map((m: any) => ({
     id: String(m._id),
     role: m.role as "user" | "assistant",
     content: m.content,
@@ -35,7 +48,7 @@ export default async function ConversationPage({ params }: PageProps) {
   return (
     <div className="h-full">
       <ChatInterface
-        conversationId={params.id}
+        conversationId={id}
         initialMessages={serializedMessages}
         conversationTitle={conversation.title}
       />
