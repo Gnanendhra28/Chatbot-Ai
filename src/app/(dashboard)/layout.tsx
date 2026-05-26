@@ -43,7 +43,6 @@ export default function DashboardLayout({
       {/* MOBILE TOP BAR */}
       <div
         className="
-        md:hidden
         flex items-center
         h-14
         px-4
@@ -81,9 +80,8 @@ export default function DashboardLayout({
     h-full
     flex flex-col
     transition-all duration-300 ease-in-out
-    md:translate-x-0
     `,
-          mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+          mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
         style={{
           width:
@@ -129,7 +127,7 @@ export default function DashboardLayout({
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 py-3 px-2 flex flex-col gap-0.5 overflow-y-auto">
+        <nav className="flex-1 py-3 px-2 flex flex-col gap-0.5 overflow-y-auto min-h-0">
           {NAV_ITEMS.map(({ href, label, icon: Icon, exact }) => {
             const active = exact
               ? pathname === href
@@ -159,7 +157,10 @@ export default function DashboardLayout({
 
         {/* Bottom */}
         <div
-          className="px-2 py-3 flex flex-col gap-2"
+          className="px-2 py-3
+    flex flex-col gap-2
+    sticky bottom-0
+    bg-[var(--surface)]"
           style={{ borderTop: "1px solid var(--border)" }}
         >
           <div
