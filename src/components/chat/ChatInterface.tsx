@@ -247,6 +247,87 @@ export default function ChatInterface({
       className="flex flex-col h-screen overflow-hidden"
       style={{ background: "var(--background)" }}
     >
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`
+    fixed top-0 left-0 z-50
+    h-screen w-[260px]
+    transition-transform duration-300
+    bg-black border-r border-zinc-800
+
+    ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+
+    md:hidden
+  `}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+          <h1 className="text-xl font-bold text-green-400">NeuralLog</h1>
+
+          <button onClick={() => setSidebarOpen(false)} className="p-2">
+            ✕
+          </button>
+        </div>
+
+        <nav className="flex flex-col p-4 gap-2">
+          <button
+            onClick={() => {
+              router.push("/dashboard");
+              setSidebarOpen(false);
+            }}
+            className="text-left p-3 rounded-lg hover:bg-zinc-900"
+          >
+            Dashboard
+          </button>
+
+          <button
+            onClick={() => {
+              router.push("/chat");
+              setSidebarOpen(false);
+            }}
+            className="text-left p-3 rounded-lg hover:bg-zinc-900"
+          >
+            New Chat
+          </button>
+
+          <button
+            onClick={() => {
+              router.push("/conversations");
+              setSidebarOpen(false);
+            }}
+            className="text-left p-3 rounded-lg hover:bg-zinc-900"
+          >
+            Conversations
+          </button>
+
+          <button
+            onClick={() => {
+              router.push("/knowledge");
+              setSidebarOpen(false);
+            }}
+            className="text-left p-3 rounded-lg hover:bg-zinc-900"
+          >
+            Knowledge Base
+          </button>
+
+          <button
+            onClick={() => {
+              router.push("/settings");
+              setSidebarOpen(false);
+            }}
+            className="text-left p-3 rounded-lg hover:bg-zinc-900"
+          >
+            Settings
+          </button>
+        </nav>
+      </aside>
       {/* Header */}
 
       <div
