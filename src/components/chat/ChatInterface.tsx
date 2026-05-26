@@ -18,6 +18,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils/cn";
+import { Menu } from "lucide-react";
 
 interface Message {
   id: string;
@@ -58,6 +59,7 @@ export default function ChatInterface({
   const [conversationId, setConversationId] = useState(initialConvId);
   const [selectedProvider, setSelectedProvider] = useState(PROVIDERS[0]);
   const [showProviderMenu, setShowProviderMenu] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -242,18 +244,29 @@ export default function ChatInterface({
 
   return (
     <div
-      className="flex flex-col h-full"
+      className="flex flex-col h-screen overflow-hidden"
       style={{ background: "var(--background)" }}
     >
       {/* Header */}
+
       <div
-        className="flex items-center justify-between px-4 py-3"
+        className="flex items-center justify-between px-3 md:px-4 py-3 gap-2 flex-wrap sticky top-0 z-30 backdrop-blur"
         style={{
           borderBottom: "1px solid var(--border)",
           background: "var(--surface)",
         }}
       >
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="
+    md:hidden
+    p-2 rounded-lg
+    border border-[var(--border)]
+  "
+          >
+            <Menu size={18} />
+          </button>
           <div
             className="w-2 h-2 rounded-full"
             style={{
@@ -264,7 +277,7 @@ export default function ChatInterface({
             }}
           />
           <span
-            className="text-sm font-medium"
+            className="text-xs md:text-sm font-medium truncate max-w-[120px] md:max-w-none"
             style={{ fontFamily: "var(--font-display)" }}
           >
             {conversationTitle ??
@@ -292,7 +305,7 @@ export default function ChatInterface({
           {/* Provider selector */}
           <div className="relative">
             <button
-              className="btn btn-secondary text-xs flex items-center gap-1.5"
+              className="btn btn-secondary text-[10px] md:text-xs flex items-center gap-1 px-2 py-1.5 max-w-[160px] truncate"
               onClick={() => setShowProviderMenu(!showProviderMenu)}
             >
               <Zap size={12} style={{ color: "var(--accent)" }} />
@@ -359,7 +372,7 @@ export default function ChatInterface({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div className="flex-1 overflow-y-auto px-3 md:px-4 py-4 md:py-6 scroll-smooth">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-4 animate-fade-in">
             <div
@@ -385,7 +398,7 @@ export default function ChatInterface({
                 Powered by {selectedProvider.label} · {selectedModel}
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-2 mt-4 max-w-md w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4 max-w-md w-full">
               {[
                 "Explain transformer architecture",
                 "Write a Python async function",
@@ -412,7 +425,7 @@ export default function ChatInterface({
           </div>
         )}
 
-        <div className="max-w-3xl mx-auto flex flex-col gap-4">
+        <div className="max-w-[95%] md:max-w-3xl mx-auto flex flex-col gap-4">
           {messages.map((msg) => (
             <div
               key={msg.id}
@@ -443,7 +456,7 @@ export default function ChatInterface({
               {/* Bubble */}
               <div
                 className={cn(
-                  "relative max-w-[80%] rounded-xl px-4 py-3",
+                  "relative max-w-[92%] md:max-w-[80%] rounded-xl px-4 py-3",
                   msg.role === "user" ? "rounded-tr-sm" : "rounded-tl-sm",
                 )}
                 style={{
@@ -520,13 +533,19 @@ export default function ChatInterface({
 
       {/* Input */}
       <div
-        className="px-4 py-3"
+        className="
+    px-3 md:px-4
+    py-3
+    sticky bottom-0 z-20
+    backdrop-blur
+  "
         style={{
           borderTop: "1px solid var(--border)",
-          background: "var(--surface)",
+          background: "rgba(10,10,10,0.92)",
         }}
       >
-        <div className="max-w-3xl mx-auto">
+        s
+        <div className="max-w-[95%] md:max-w-3xl mx-auto">
           <form onSubmit={handleSubmit} className="relative">
             <div
               className="flex items-end gap-2 rounded-xl p-2"
@@ -544,7 +563,16 @@ export default function ChatInterface({
                 onKeyDown={handleKeyDown}
                 placeholder="Send a message… (Shift+Enter for newline)"
                 rows={1}
-                className="flex-1 bg-transparent outline-none resize-none text-sm py-1 px-2"
+                className="
+  flex-1
+  bg-transparent
+  outline-none
+  resize-none
+  text-sm md:text-base
+  py-2 px-2
+  min-h-[44px]
+  max-h-[160px]
+"
                 style={{
                   color: "var(--text-primary)",
                   fontFamily: "var(--font-body)",
@@ -556,7 +584,7 @@ export default function ChatInterface({
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+                className="h-11 w-11 md:h-auto md:w-auto flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all"
                 style={{
                   background:
                     input.trim() && !isLoading
