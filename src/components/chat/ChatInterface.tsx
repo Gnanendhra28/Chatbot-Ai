@@ -18,7 +18,6 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils/cn";
-import { Menu } from "lucide-react";
 
 interface Message {
   id: string;
@@ -244,7 +243,7 @@ export default function ChatInterface({
 
   return (
     <div
-      className="flex flex-col h-screen overflow-hidden"
+      className="flex flex-col h-full overflow-hidden"
       style={{ background: "var(--background)" }}
     >
       {/* Mobile Overlay */}
@@ -345,9 +344,7 @@ export default function ChatInterface({
     p-2 rounded-lg
     border border-[var(--border)]
   "
-          >
-            <Menu size={18} />
-          </button>
+          ></button>
           <div
             className="w-2 h-2 rounded-full"
             style={{

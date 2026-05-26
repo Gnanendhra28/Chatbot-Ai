@@ -177,7 +177,7 @@ ${message}
 
       provider: "groq",
 
-      model: safeModel,
+      modelname: safeModel,
 
       requestedAt: new Date(),
 

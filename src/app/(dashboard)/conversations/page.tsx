@@ -90,7 +90,7 @@ export default function ConversationsPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className=" flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <h1
             className="text-2xl font-bold"
@@ -149,7 +149,14 @@ export default function ConversationsPage() {
       </div>
 
       {/* Table */}
-      <div className="surface-card overflow-hidden">
+      <div
+        className="h-full
+    overflow-y-auto
+    overflow-x-hidden
+    p-3 md:p-6
+    pb-24
+    touch-pan-y"
+      >
         {loading ? (
           <div className="flex items-center justify-center h-40">
             <div
@@ -160,140 +167,166 @@ export default function ConversationsPage() {
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 gap-2">
             <MessageSquare size={32} style={{ color: "var(--text-muted)" }} />
+
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
               No conversations found
             </p>
+
             <Link href="/chat" className="btn btn-primary mt-2 text-xs">
-              <Plus size={12} /> Start one
+              <Plus size={12} />
+              Start one
             </Link>
           </div>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                {[
-                  "Title",
-                  "Status",
-                  "Provider",
-                  "Messages",
-                  "Tokens",
-                  "Updated",
-                  "",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider"
-                    style={{
-                      color: "var(--text-muted)",
-                      fontFamily: "var(--font-mono)",
-                    }}
+          <div
+            className="
+        w-full
+        overflow-x-auto
+        overflow-y-hidden
+        touch-pan-x
+        overscroll-x-contain
+      "
+          >
+            <table className="min-w-[950px] w-full">
+              <thead>
+                <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                  {[
+                    "Title",
+                    "Status",
+                    "Provider",
+                    "Messages",
+                    "Tokens",
+                    "Updated",
+                    "",
+                  ].map((h) => (
+                    <th
+                      key={h}
+                      className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider"
+                      style={{
+                        color: "var(--text-muted)",
+                        fontFamily: "var(--font-mono)",
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-[var(--border)]">
+                {filtered.map((conv) => (
+                  <tr
+                    key={conv._id}
+                    className="group hover:bg-[var(--surface-2)] transition-colors"
                   >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((conv) => (
-                <tr
-                  key={conv._id}
-                  className="group transition-colors hover:bg-[var(--surface-2)]"
-                  style={{ borderBottom: "1px solid var(--border-subtle)" }}
-                >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare
-                        size={14}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare
+                          size={14}
+                          style={{ color: "var(--text-muted)" }}
+                        />
+
+                        <span
+                          className="text-sm font-medium"
+                          title={conv.title}
+                        >
+                          {conv.title}
+                        </span>
+                      </div>
+
+                      <p
+                        className="text-xs mt-1 font-mono ml-5"
                         style={{ color: "var(--text-muted)" }}
-                      />
-                      <span
-                        className="text-sm font-medium truncate max-w-[240px]"
-                        title={conv.title}
                       >
-                        {conv.title}
+                        #{conv._id.slice(-8)}
+                      </p>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <span
+                        className={`tag ${STATUS_CONFIG[conv.status]?.class ?? "tag-muted"}`}
+                      >
+                        {conv.status}
                       </span>
-                    </div>
-                    <p
-                      className="text-xs mt-0.5 font-mono ml-5"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      #{conv._id.slice(-8)}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`tag ${STATUS_CONFIG[conv.status]?.class ?? "tag-muted"}`}
-                    >
-                      {conv.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className="text-xs font-mono"
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <span
+                        className="text-xs font-mono"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        {conv.provider || "unknown"}/
+                        {conv.model
+                          ? conv.model.split("-").slice(0, 2).join("-")
+                          : "no-model"}
+                      </span>
+                    </td>
+
+                    <td
+                      className="px-4 py-3 text-sm text-center"
                       style={{ color: "var(--text-secondary)" }}
                     >
-                      {conv.provider || "unknown"}/
-                      {conv.model
-                        ? conv.model.split("-").slice(0, 2).join("-")
-                        : "no-model"}
-                    </span>
-                  </td>
-                  <td
-                    className="px-4 py-3 text-sm text-center"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    {conv.messageCount}
-                  </td>
-                  <td
-                    className="px-4 py-3 text-sm font-mono"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {conv.totalTokens.toLocaleString()}
-                  </td>
-                  <td
-                    className="px-4 py-3 text-xs"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {formatDistanceToNow(new Date(conv.updatedAt), {
-                      addSuffix: true,
-                    })}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {conv.status === "active" && (
-                        <Link
-                          href={`/chat/${conv._id}`}
-                          className="btn btn-ghost p-1.5"
-                          title="Resume"
-                        >
-                          <Play size={13} style={{ color: "var(--accent)" }} />
-                        </Link>
-                      )}
-                      {conv.status === "active" && (
+                      {conv.messageCount}
+                    </td>
+
+                    <td
+                      className="px-4 py-3 text-sm font-mono"
+                      style={{ color: "var(--text-muted)" }}
+                    >
+                      {conv.totalTokens.toLocaleString()}
+                    </td>
+
+                    <td
+                      className="px-4 py-3 text-xs"
+                      style={{ color: "var(--text-muted)" }}
+                    >
+                      {formatDistanceToNow(new Date(conv.updatedAt), {
+                        addSuffix: true,
+                      })}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        {conv.status === "active" && (
+                          <Link
+                            href={`/chat/${conv._id}`}
+                            className="btn btn-ghost p-1.5"
+                            title="Resume"
+                          >
+                            <Play
+                              size={13}
+                              style={{ color: "var(--accent)" }}
+                            />
+                          </Link>
+                        )}
+
+                        {conv.status === "active" && (
+                          <button
+                            onClick={() => handleCancel(conv._id)}
+                            className="btn btn-ghost p-1.5"
+                            title="Cancel"
+                          >
+                            <XCircle
+                              size={13}
+                              style={{ color: "var(--warning)" }}
+                            />
+                          </button>
+                        )}
+
                         <button
-                          onClick={() => handleCancel(conv._id)}
+                          onClick={() => handleDelete(conv._id)}
                           className="btn btn-ghost p-1.5"
-                          title="Cancel"
+                          title="Delete"
                         >
-                          <XCircle
-                            size={13}
-                            style={{ color: "var(--warning)" }}
-                          />
+                          <Trash2 size={13} style={{ color: "var(--error)" }} />
                         </button>
-                      )}
-                      <button
-                        onClick={() => handleDelete(conv._id)}
-                        className="btn btn-ghost p-1.5"
-                        title="Delete"
-                      >
-                        <Trash2 size={13} style={{ color: "var(--error)" }} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
