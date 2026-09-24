@@ -1,0 +1,135 @@
+{
+  "total_failures_recorded": 12,
+  "breakdown": {
+    "Retrieval failure": 1,
+    "Reranking failure": 1,
+    "Chunking failure": 1,
+    "Query rewriting failure": 1,
+    "Context construction failure": 1,
+    "Generation failure": 5,
+    "Citation failure": 1,
+    "No-answer detection failure": 1
+  },
+  "records": [
+    {
+      "question": "What is the enterprise refund period?",
+      "expected_source": "refund-policy.pdf, page 12",
+      "retrieved_source": "employee-handbook.pdf, page 8",
+      "expected_answer": "Customers can request full refunds within 30 days of purchase.",
+      "generated_answer": "Employees are entitled to 12 days of annual leave.",
+      "failure_type": "Retrieval failure",
+      "notes": "Vector similarity returned HR handbook instead of financial refund policy.",
+      "timestamp": "2026-09-24T05:21:57.221629+00:00"
+    },
+    {
+      "question": "What is the SOC2 compliance audit timeline?",
+      "expected_source": "security-compliance.pdf, page 4",
+      "retrieved_source": "security-compliance.pdf, page 24",
+      "expected_answer": "SOC2 Type II audits are conducted annually in Q3.",
+      "generated_answer": "SOC2 controls cover data encryption at rest.",
+      "failure_type": "Reranking failure",
+      "notes": "Page 4 was retrieved in top 10 but reranker pushed page 24 above it.",
+      "timestamp": "2026-09-24T05:21:57.222372+00:00"
+    },
+    {
+      "question": "What are the SLA uptime guarantees for Tier 1 databases?",
+      "expected_source": "sla-agreements.pdf, page 3",
+      "retrieved_source": "sla-agreements.pdf, page 3",
+      "expected_answer": "Tier 1 databases carry a 99.99% monthly uptime SLA with 15-minute RTO.",
+      "generated_answer": "Tier 1 databases carry a 99.99% monthly uptime SLA.",
+      "failure_type": "Chunking failure",
+      "notes": "RTO sentence was split into adjacent chunk index 4 and omitted from top-1 context.",
+      "timestamp": "2026-09-24T05:21:57.222537+00:00"
+    },
+    {
+      "question": "What is the reimbursement limit for team offsite dinners?",
+      "expected_source": "travel-expense-policy.pdf, page 7",
+      "retrieved_source": "catering-vendors.pdf, page 2",
+      "expected_answer": "$75 per person for team offsite dinners.",
+      "generated_answer": "Catering vendors provide buffet options.",
+      "failure_type": "Query rewriting failure",
+      "notes": "Query rewriter expanded 'offsite dinners' to 'catering vendor contracts'.",
+      "timestamp": "2026-09-24T05:21:57.222672+00:00"
+    },
+    {
+      "question": "How are customer PII encryption keys rotated?",
+      "expected_source": "kms-key-rotation.pdf, page 5",
+      "retrieved_source": "kms-key-rotation.pdf, page 5",
+      "expected_answer": "Keys are rotated automatically every 90 days via AWS KMS.",
+      "generated_answer": "Based on the enterprise documents: [Truncated due to context overflow]",
+      "failure_type": "Context construction failure",
+      "notes": "Excessive context chunks exceeded LLM max input token limit.",
+      "timestamp": "2026-09-24T05:21:57.222799+00:00"
+    },
+    {
+      "question": "What is the maximum allowed file size for attachment uploads?",
+      "expected_source": "upload-limits.pdf, page 2",
+      "retrieved_source": "upload-limits.pdf, page 2",
+      "expected_answer": "The maximum attachment file size is 50 MB.",
+      "generated_answer": "The maximum attachment file size is 100 MB.",
+      "failure_type": "Generation failure",
+      "notes": "Context clearly stated 50 MB, but LLM hallucinated 100 MB.",
+      "timestamp": "2026-09-24T05:21:57.222940+00:00"
+    },
+    {
+      "question": "What is the multi-factor authentication (MFA) grace period?",
+      "expected_source": "iam-policy.pdf, page 3",
+      "retrieved_source": "iam-policy.pdf, page 3",
+      "expected_answer": "New users have a 7-day grace period to configure MFA.",
+      "generated_answer": "New users have a 7-day grace period to configure MFA.",
+      "failure_type": "Citation failure",
+      "notes": "Generated answer was accurate, but citation referenced employee-onboarding.pdf instead of iam-policy.pdf.",
+      "timestamp": "2026-09-24T05:21:57.223072+00:00"
+    },
+    {
+      "question": "What is the policy for international travel insurance?",
+      "expected_source": "travel-insurance.pdf, page 1",
+      "retrieved_source": "travel-insurance.pdf, page 1",
+      "expected_answer": "International business travel requires prior registration with SOS International.",
+      "generated_answer": "I do not have enough relevant document information to answer this question.",
+      "failure_type": "No-answer detection failure",
+      "notes": "LLM prematurely triggered no-answer fallback despite relevant context being present.",
+      "timestamp": "2026-09-24T05:21:57.223219+00:00"
+    },
+    {
+      "question": "What is the refund period?",
+      "expected_source": "refund.pdf",
+      "retrieved_source": "refund.pdf",
+      "expected_answer": "Customers can request refunds within 30 days of purchase.",
+      "generated_answer": "Based on policy, Customers can request refunds within 30 days of purchase.\n\nSources:\n[1] refund.pdf \u2014 Page 1",
+      "failure_type": "Generation failure",
+      "notes": "Auto-captured by benchmark runner. Recall=1.0, Faithfulness=0.6471",
+      "timestamp": "2026-09-24T05:23:11.808545+00:00"
+    },
+    {
+      "question": "What is casual leave?",
+      "expected_source": "leave.pdf",
+      "retrieved_source": "leave.pdf",
+      "expected_answer": "Employees are entitled to 12 days of casual leave per calendar year.",
+      "generated_answer": "Based on policy, Employees are entitled to 12 days of casual leave per calendar year.\n\nSources:\n[1] leave.pdf \u2014 Page 1",
+      "failure_type": "Generation failure",
+      "notes": "Auto-captured by benchmark runner. Recall=1.0, Faithfulness=0.6842",
+      "timestamp": "2026-09-24T05:23:11.811802+00:00"
+    },
+    {
+      "question": "What is the remote work policy?",
+      "expected_source": "remote_work.pdf",
+      "retrieved_source": "remote_work.pdf",
+      "expected_answer": "Employees may work remotely up to 2 days per week with manager approval.",
+      "generated_answer": "Based on policy, Employees may work remotely up to 2 days per week with manager approval.\n\nSources:\n[1] remote_work.pdf \u2014 Page 1",
+      "failure_type": "Generation failure",
+      "notes": "Auto-captured by benchmark runner. Recall=1.0, Faithfulness=0.6667",
+      "timestamp": "2026-09-24T05:23:11.812254+00:00"
+    },
+    {
+      "question": "How do I submit an expense report?",
+      "expected_source": "expense_policy.pdf",
+      "retrieved_source": "expense_policy.pdf",
+      "expected_answer": "Expense reports must be submitted through the portal within 14 days of travel.",
+      "generated_answer": "Based on policy, Expense reports must be submitted through the portal within 14 days of travel.\n\nSources:\n[1] expense_policy.pdf \u2014 Page 1",
+      "failure_type": "Generation failure",
+      "notes": "Auto-captured by benchmark runner. Recall=1.0, Faithfulness=0.6667",
+      "timestamp": "2026-09-24T05:23:11.813044+00:00"
+    }
+  ]
+}

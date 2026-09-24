@@ -1,0 +1,5 @@
+question,expected_answer,expected_source
+"What is the refund period?","Customers can request refunds within 30 days of purchase.","refund.pdf"
+"What is casual leave?","Employees are entitled to 12 days of casual leave per calendar year.","leave.pdf"
+"What is the remote work policy?","Employees may work remotely up to 2 days per week with manager approval.","remote_work.pdf"
+"How do I submit an expense report?","Expense reports must be submitted through the portal within 14 days of travel.","expense_policy.pdf"

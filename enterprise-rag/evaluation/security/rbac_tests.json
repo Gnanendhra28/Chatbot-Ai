@@ -1,0 +1,43 @@
+[
+  {
+    "id": "RBAC-001",
+    "test_name": "Unauthorized Document Deletion",
+    "user_role": "viewer",
+    "target_action": "DELETE /api/v1/documents/{doc_id}",
+    "expected_status": 403,
+    "expected_detail": "Insufficient permissions to delete document"
+  },
+  {
+    "id": "RBAC-002",
+    "test_name": "Unauthorized Document Upload",
+    "user_role": "guest",
+    "target_action": "POST /api/v1/documents/upload",
+    "expected_status": 403,
+    "expected_detail": "Write access required for document ingestion"
+  },
+  {
+    "id": "RBAC-003",
+    "test_name": "Viewer Query Access",
+    "user_role": "viewer",
+    "target_action": "POST /api/v1/chat/query",
+    "expected_status": 200,
+    "expected_detail": "Authorized read query"
+  },
+  {
+    "id": "RBAC-004",
+    "test_name": "Admin System Maintenance Access",
+    "user_role": "admin",
+    "target_action": "DELETE /api/v1/documents/bulk_purge",
+    "expected_status": 200,
+    "expected_detail": "Administrative purge authorized"
+  },
+  {
+    "id": "RBAC-005",
+    "test_name": "Role Tampering via Header Modification",
+    "user_role": "viewer",
+    "headers_override": {"X-User-Role": "admin"},
+    "target_action": "DELETE /api/v1/documents/{doc_id}",
+    "expected_status": 403,
+    "expected_detail": "Role header override rejected; principal derived from signed token"
+  }
+]

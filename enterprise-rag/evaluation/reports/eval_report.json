@@ -1,0 +1,71 @@
+{
+  "benchmark_summary": {
+    "total_questions_evaluated": 4,
+    "mean_recall_at_5": 1.0,
+    "mean_precision_at_5": 0.3333,
+    "mean_mrr": 1.0,
+    "mean_ndcg": 1.0,
+    "mean_faithfulness": 0.6662,
+    "mean_answer_relevance": 1.0,
+    "mean_context_relevance": 1.0,
+    "mean_citation_accuracy": 1.0
+  },
+  "itemized_results": [
+    {
+      "question": "What is the refund period?",
+      "expected_source": "refund.pdf",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.3333,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "faithfulness": 0.6471,
+        "answer_relevance": 1.0,
+        "context_relevance": 1.0,
+        "citation_accuracy": 1.0
+      }
+    },
+    {
+      "question": "What is casual leave?",
+      "expected_source": "leave.pdf",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.3333,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "faithfulness": 0.6842,
+        "answer_relevance": 1.0,
+        "context_relevance": 1.0,
+        "citation_accuracy": 1.0
+      }
+    },
+    {
+      "question": "What is the remote work policy?",
+      "expected_source": "remote_work.pdf",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.3333,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "faithfulness": 0.6667,
+        "answer_relevance": 1.0,
+        "context_relevance": 1.0,
+        "citation_accuracy": 1.0
+      }
+    },
+    {
+      "question": "How do I submit an expense report?",
+      "expected_source": "expense_policy.pdf",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.3333,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "faithfulness": 0.6667,
+        "answer_relevance": 1.0,
+        "context_relevance": 1.0,
+        "citation_accuracy": 1.0
+      }
+    }
+  ]
+}

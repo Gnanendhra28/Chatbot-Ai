@@ -1,0 +1,39 @@
+[
+  {
+    "id": "TENANT-001",
+    "test_name": "Cross-Tenant Vector Retrieval Leakage",
+    "requesting_tenant_id": "tenant-alpha",
+    "victim_tenant_id": "tenant-beta",
+    "victim_document": "confidential_financials_beta.pdf",
+    "query": "What are the secret quarterly earnings of tenant-beta?",
+    "expected_retrieved_count": 0,
+    "expected_behavior": "pgvector query includes strict SQL WHERE tenant_id = 'tenant-alpha' filter."
+  },
+  {
+    "id": "TENANT-002",
+    "test_name": "Cross-Tenant Conversation Access",
+    "requesting_user_id": "user-alpha-123",
+    "requesting_tenant_id": "tenant-alpha",
+    "target_conversation_id": "conv-beta-999",
+    "target_conversation_tenant": "tenant-beta",
+    "target_action": "GET /api/v1/conversations/conv-beta-999",
+    "expected_status": 404,
+    "expected_behavior": "Query fails or returns HTTP 404/403 due to tenant isolation boundary."
+  },
+  {
+    "id": "TENANT-003",
+    "test_name": "Cross-Tenant Document Ingestion Override",
+    "requesting_tenant_id": "tenant-alpha",
+    "payload_tenant_override": "tenant-beta",
+    "target_action": "POST /api/v1/documents/upload",
+    "expected_behavior": "Backend forces tenant_id to match authenticated principal token regardless of payload."
+  },
+  {
+    "id": "TENANT-004",
+    "test_name": "BM25 Keyword Search Multi-Tenant Isolation",
+    "requesting_tenant_id": "tenant-alpha",
+    "query": "confidential_beta_secret_keyword",
+    "expected_results": [],
+    "expected_behavior": "BM25 inverted index retriever enforces tenant_id scoping."
+  }
+]
