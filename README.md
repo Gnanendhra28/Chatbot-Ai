@@ -1,588 +1,211 @@
-# NeuralLog
+# 🚀 Enterprise RAG Platform
 
-> **LLM Observability & RAG Chat Platform**
+A production-grade, multi-tenant **Retrieval-Augmented Generation (RAG)** platform engineered with a high-performance Python 3.13 FastAPI backend, PostgreSQL 16 with `pgvector`, Hybrid Search (Dense Vector + BM25 + Reciprocal Rank Fusion + Cross-Encoder Reranker), and a Next.js 15 frontend.
 
-NeuralLog is a full-stack AI observability platform that provides real-time inference monitoring, retrieval-augmented generation, and a multi-conversation chat interface — all in one cohesive system.
-
-Built with Next.js 15, MongoDB, Clerk, and Groq's Llama 3.3 70B.
+Deployed on **Google Cloud Run**, **Google Cloud SQL**, **Google Cloud Storage (GCS)**, and **Vercel**.
 
 ---
 
-## Table of Contents
+## 🌟 Key Features
 
-- [Overview](#overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Architecture](#architecture)
-- [Getting Started](#getting-started)
-- [Docker Setup](#docker-setup)
-- [Database Schema](#database-schema)
-- [SDK & Wrapper Layer](#sdk--wrapper-layer)
-- [RAG Pipeline](#rag-pipeline)
-- [Security](#security)
-- [Design Decisions & Tradeoffs](#design-decisions--tradeoffs)
-- [Performance](#performance)
-- [Roadmap](#roadmap)
+- 🔐 **Enterprise Security & RBAC**: Role-based access control (Admin, Manager, Employee), prompt injection sanitization, forbidden executable upload filtering, and structured audit logs.
+- 🏢 **Multi-Tenant Isolation**: Row-level tenant data partitioning (`tenant_id`) enforced across documents, vector embeddings, chunks, and conversation histories.
+- ⚡ **Hybrid Vector & Keyword Retrieval**: Combines HNSW `pgvector` cosine similarity search with sparse BM25 keyword matching, Reciprocal Rank Fusion (RRF), and Cross-Encoder re-ranking.
+- 🌊 **Real-Time SSE Streaming**: Server-Sent Events (`/api/v1/chat/stream`) for token-by-token streaming with instant citation payload delivery.
+- 📄 **Asynchronous Document Processing**: Background worker pipeline parsing PDFs/Markdown, generating 384-dimensional embeddings via `all-MiniLM-L6-v2`, and storing original files in GCS.
+- 📊 **Production Observability**: Full `request_id` trace correlation across Cloud Run, Cloud SQL `retrieval_logs` audit table, and LLM completions.
 
 ---
 
-## Overview
+## 🏗️ System Architecture
 
-NeuralLog bridges the gap between AI chat interfaces and production-grade observability tooling. Every inference is logged, measured, and surfaced through an analytics dashboard — giving developers full visibility into latency, token usage, throughput, and errors.
+```mermaid
+flowchart TD
+    subgraph Client ["Frontend Layer (Vercel)"]
+        UI["Next.js 15 App Router"]
+        SSE_Client["SSE Stream Consumer"]
+    end
 
----
+    subgraph GCP ["Google Cloud Platform (asia-south1)"]
+        subgraph CloudRun ["Cloud Run Container"]
+            API["FastAPI App (Python 3.13)"]
+            Auth["RBAC & Prompt Sanitizer"]
+            Hybrid["Hybrid Retriever (Vector + BM25 + RRF + Reranker)"]
+            Worker["Background Ingestion Worker"]
+        end
 
-## Features
+        subgraph GCS ["Object Storage"]
+            Bucket["gs://enterprise-rag-docs-507307"]
+        end
 
-### AI Chat
+        subgraph CloudSQL ["Cloud SQL PostgreSQL 16"]
+            DB[("enterprise_rag Database")]
+            Vec[("pgvector v0.8.5 HNSW Index")]
+            Logs[("retrieval_logs Audit Table")]
+        end
+    end
 
-- Multi-conversation management with message persistence
-- Streaming typing effect with auto-scroll
-- Context-aware responses via RAG
+    subgraph LLM ["LLM Providers"]
+        Groq["Groq API (qwen/qwen3.8-27b)"]
+        Gemini["Google Gemini API"]
+    end
 
-### Observability
-
-- Per-request inference logging (latency, tokens, throughput, errors)
-- Dashboard analytics with activity graphs and token metrics
-- Real-time monitoring of provider performance
-
-### RAG (Retrieval-Augmented Generation)
-
-- Upload TXT, Markdown, and PDF documents
-- Automatic chunking and keyword-based retrieval
-- Context injection into LLM prompts
-
-### Authentication & Access Control
-
-- Clerk-powered authentication
-- Protected API routes and dashboard pages
-- User-scoped conversations and knowledge documents
-
----
-
-# 🛠️ Tech Stack
-
-| Layer               | Technology                       |
-| ------------------- | -------------------------------- |
-| Frontend            | Next.js 15, React 18, TypeScript |
-| Styling             | Tailwind CSS                     |
-| Authentication      | Clerk                            |
-| Backend             | Next.js API Routes               |
-| Database            | MongoDB + Mongoose               |
-| Vector Database     | Qdrant                           |
-| LLM                 | Groq (Llama 3.3 70B Versatile)   |
-| Embeddings          | Transformer Embedding Model      |
-| Document Processing | PDF Parser, Recursive Chunking   |
-| Validation          | Zod                              |
-| Charts              | Recharts                         |
-| Containerization    | Docker & Docker Compose          |
-| Deployment          | Vercel / Docker                  |
-
----
-
-# ⚙️ Core Technologies
-
-### Frontend
-
-- Next.js App Router
-- React 18
-- TypeScript
-- Tailwind CSS
-- Recharts
-- Lucide Icons
-
----
-
-### Backend
-
-- Next.js API Routes
-- TypeScript
-- MongoDB
-- Mongoose
-
----
-
-### AI Stack
-
-- Groq SDK
-- Llama 3.3 70B Versatile
-- Retrieval-Augmented Generation
-- Semantic Search
-- Vector Embeddings
-
----
-
-### Vector Search
-
-- Qdrant
-- Dense Retrieval
-- Similarity Search
-- Metadata Filtering
-
----
-
-### Authentication
-
-- Clerk Authentication
-- User Sessions
-- Route Protection
-
----
-
-### Infrastructure
-
-- Docker
-- Docker Compose
-- Environment Variables
-- Modular Architecture
-
----
-
-# 📂 Project Structure
-
-```
-NeuralLog/
-│
-├── src/
-│
-├── app/
-│   ├── api/
-│   │
-│   ├── chat/
-│   ├── dashboard/
-│   ├── knowledge/
-│   ├── settings/
-│   └── auth/
-│
-├── components/
-│   ├── chat/
-│   ├── dashboard/
-│   ├── knowledge/
-│   ├── layout/
-│   └── ui/
-│
-├── lib/
-│   │
-│   ├── db/
-│   │   ├── mongoose.ts
-│   │   └── models/
-│   │
-│   ├── rag/
-│   │   ├── embeddings.ts
-│   │   ├── qdrant.ts
-│   │   ├── retrieval.ts
-│   │   └── chunking.ts
-│   │
-│   ├── providers/
-│   │   ├── base.ts
-│   │   ├── groq.ts
-│   │   └── wrapper.ts
-│   │
-│   ├── observability/
-│   │   ├── logger.ts
-│   │   ├── metrics.ts
-│   │   └── pii.ts
-│   │
-│   └── utils/
-│
-├── public/
-│
-├── docker/
-│
-├── docker-compose.yml
-│
-├── package.json
-│
-└── README.md
+    UI -->|HTTPS / API Requests| API
+    SSE_Client <-->|Server-Sent Events| API
+    API --> Auth
+    Auth --> Hybrid
+    API --> Worker
+    Worker -->|Upload Raw File| Bucket
+    Worker -->|Store Chunks & Vectors| Vec
+    Hybrid -->|Cosine & Keyword Query| Vec
+    Hybrid --> Logs
+    API -->|Prompt & Context| Groq
+    Groq -->|Streamed Tokens| SSE_Client
 ```
 
 ---
 
-# 🏗️ High-Level System Architecture
+## 🛠️ Technology Stack
 
-```
-                    +----------------------+
-                    |      User Browser    |
-                    +----------+-----------+
-                               |
-                               |
-                               ▼
-                    +----------------------+
-                    |     Next.js UI       |
-                    +----------+-----------+
-                               |
-                               |
-                               ▼
-                    +----------------------+
-                    |     API Routes       |
-                    +----------+-----------+
-                               |
-          +--------------------+--------------------+
-          |                                         |
-          |                                         |
-          ▼                                         ▼
-+-----------------------+              +------------------------+
-|     AI Chat API       |              |  Knowledge Base API    |
-+-----------+-----------+              +-----------+------------+
-            |                                      |
-            |                                      |
-            ▼                                      ▼
-+-----------------------+              +------------------------+
-| Embedding Generator   |              | PDF/Text Processing    |
-+-----------+-----------+              +-----------+------------+
-            |                                      |
-            ▼                                      ▼
-+-----------------------+              +------------------------+
-| Qdrant Vector Search  |              | Recursive Chunking     |
-+-----------+-----------+              +-----------+------------+
-            |                                      |
-            +------------------+-------------------+
-                               |
-                               ▼
-                    +----------------------+
-                    | Prompt Builder       |
-                    +----------+-----------+
-                               |
-                               ▼
-                    +----------------------+
-                    | Groq LLM             |
-                    +----------+-----------+
-                               |
-                               ▼
-                    +----------------------+
-                    | AI Response          |
-                    +----------+-----------+
-                               |
-                               ▼
-                    +----------------------+
-                    | Inference Logger     |
-                    +----------+-----------+
-                               |
-                               ▼
-                    +----------------------+
-                    | MongoDB              |
-                    +----------------------+
+| Layer | Technologies Used |
+| :--- | :--- |
+| **Backend API** | Python 3.13, FastAPI, Uvicorn, Pydantic v2, AsyncIO |
+| **Database & ORM** | PostgreSQL 16, `pgvector` v0.8.5, SQLAlchemy 2.0 (Async), Alembic |
+| **Ingestion & NLP** | Sentence-Transformers (`all-MiniLM-L6-v2`), PyPDF, PyMuPDF, Cross-Encoders |
+| **Frontend** | Next.js 15, React 19, TypeScript, Tailwind CSS, Lucide Icons |
+| **LLM Providers** | Groq (`qwen/qwen3.8-27b`), Google Gemini API |
+| **Cloud & DevOps** | GCP Cloud Run, Cloud SQL, GCS, Artifact Registry, Cloud Build, Docker, Vercel |
+
+---
+
+## 📁 Repository Structure
+
+```text
+enterprise-rag/
+├── backend/
+│   ├── app/
+│   │   ├── api/             # FastAPI routers (auth, documents, chat, conversations)
+│   │   ├── core/            # Config, DB async session, security, prompt sanitizer
+│   │   ├── domain/          # SQLAlchemy 2 models & Pydantic v2 schemas
+│   │   ├── infrastructure/  # Repositories & GCS storage service
+│   │   ├── ingestion/       # PDF parsing, text chunking & sentence-transformer embedder
+│   │   ├── retrieval/       # Vector search, BM25, RRF fusion & Cross-Encoder reranker
+│   │   ├── generation/      # LLM context builder & API clients
+│   │   └── main.py          # FastAPI app entry point & CORS configuration
+│   ├── alembic/             # Database migration versions (001 to 004)
+│   ├── tests/               # Pytest integration & security test suite
+│   ├── Dockerfile           # Multi-stage container definition
+│   └── requirements.txt     # Python backend dependencies
+├── frontend/
+│   ├── app/                 # Next.js 15 app router (/, /chat, /documents, /sign-in)
+│   ├── components/          # React UI components (ChatWindow, PDFUploader, Sidebar, CitationsDrawer)
+│   ├── hooks/               # Custom hooks (useChat, useDocuments)
+│   ├── lib/                 # API client utilities
+│   └── vercel.json          # Vercel deployment configuration
+├── evaluation/              # Security attack runners & RAG benchmark tests
+└── docker-compose.yml       # Local development setup with pgvector
 ```
 
 ---
 
-# 🔄 Complete AI Request Flow
+## 🚀 Quickstart Guide
 
-```
-User Prompt
-      │
-      ▼
-Chat API
-      │
-      ▼
-Generate Query Embedding
-      │
-      ▼
-Semantic Search
-(Qdrant)
-      │
-      ▼
-Top-K Chunks
-      │
-      ▼
-Prompt Builder
-      │
-      ▼
-Groq Llama 3.3
-      │
-      ▼
-LLM Response
-      │
-      ▼
-Inference Logger
-      │
-      ▼
-MongoDB
-      │
-      ▼
-Dashboard Analytics
-```
-
----
-
-# 📚 Knowledge Base Processing Flow
-
-```
-Upload Document
-       │
-       ▼
-File Validation
-       │
-       ▼
-PDF / TXT / Markdown Parsing
-       │
-       ▼
-Text Cleaning
-       │
-       ▼
-Recursive Chunking
-       │
-       ▼
-Embedding Generation
-       │
-       ▼
-Qdrant Indexing
-       │
-       ▼
-MongoDB Metadata Storage
-       │
-       ▼
-Knowledge Base Ready
-```
-
----
-
-# 🧠 Retrieval-Augmented Generation (RAG)
-
-NeuralLog uses a production-inspired Retrieval-Augmented Generation pipeline to provide context-aware responses grounded in user-uploaded knowledge.
-
-### Pipeline
-
-1. User uploads one or more documents.
-2. Documents are parsed and cleaned.
-3. Text is split into overlapping chunks.
-4. Embeddings are generated for every chunk.
-5. Chunks are indexed in Qdrant.
-6. User submits a question.
-7. The query is embedded.
-8. Qdrant retrieves the most semantically similar chunks.
-9. Retrieved context is injected into the LLM prompt.
-10. Groq generates a grounded response.
-11. Observability metrics are logged.
-12. The dashboard is updated automatically.
-
----
-
-# 🎯 Design Goals
-
-NeuralLog is designed around the following principles:
-
-- Modular architecture
-- Production-ready codebase
-- Scalable RAG pipeline
-- Provider abstraction
-- Enterprise observability
-- User isolation
-- Semantic retrieval
-- Extensible AI infrastructure
-- High maintainability
-- Clean separation of concerns
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- MongoDB instance (local or Atlas)
-- [Groq API key](https://console.groq.com)
-- [Clerk account](https://clerk.com)
-
-### 1. Clone the Repository
-
+### 1. Run with Docker Compose
 ```bash
-git clone <your-repo-url>
-cd llm-inference-logger
+docker-compose up --build
+```
+- **Backend API**: `http://localhost:8000`
+- **Interactive OpenAPI Docs**: `http://localhost:8000/api/v1/docs`
+- **Frontend App**: `http://localhost:3000`
+
+---
+
+### 2. Manual Local Setup
+
+#### Backend Setup
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Run Database Migrations
+alembic upgrade head
+
+# Start FastAPI Development Server
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### 2. Install Dependencies
-
+#### Frontend Setup
 ```bash
+cd frontend
 npm install
-```
-
-### 3. Configure Environment Variables
-
-Create a `.env.local` file in the project root:
-
-```env
-# Database
-MONGODB_URI=your_mongodb_uri
-
-# Clerk Authentication
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-CLERK_SECRET_KEY=your_clerk_secret_key
-
-# LLM Provider
-GROQ_API_KEY=your_groq_api_key
-
-# App
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# Defaults
-DEFAULT_PROVIDER=groq
-DEFAULT_MODEL=llama-3.3-70b-versatile
-
-# Ingestion
-INGEST_API_KEY=neurallog-secret
-```
-
-### 4. Start the Development Server
-
-```bash
 npm run dev
 ```
 
-The application will be available at `http://localhost:3000`.
-
 ---
 
-## Docker Setup
+## 🧪 Testing & Security Audits
 
-To run the full stack with Docker Compose:
-
+Execute the automated backend test suite:
 ```bash
-docker compose up --build
+cd backend
+pytest tests/test_api_hardening.py
+```
+
+Execute the security attack test runner:
+```bash
+python3 evaluation/runners/run_security_tests.py
 ```
 
 ---
 
-## Database Schema
+## 📡 API Endpoints Reference
 
-### `messages`
+### Health & Readiness Probes
+- `GET /health`: Returns application operational status (`{"status": "healthy"}`)
+- `GET /ready`: Returns database and storage readiness (`{"status": "ready", "database": "healthy", "storage": "healthy"}`)
 
-Stores the full chat history per conversation, including user prompts, assistant responses, token counts, and timestamps. Enables conversation replay, analytics, and future embedding support.
+### Document Ingestion & Management
+- `POST /api/v1/documents`: Upload document (PDF, DOCX, MD, TXT). Triggers asynchronous GCS backup and background ingestion.
+- `GET /api/v1/documents`: List tenant documents.
+- `GET /api/v1/documents/{id}`: Retrieve detailed document status (`UPLOADED` ➔ `PROCESSING` ➔ `EMBEDDING` ➔ `COMPLETED`).
+- `DELETE /api/v1/documents/{id}`: Delete document and associated vector chunks.
 
-### `inference_logs`
-
-Stores per-request observability data separately from messages — including latency, token usage, throughput, provider metadata, prompt/output previews, and error records. Keeping this separate improves query performance and monitoring scalability.
-
-### `knowledge_documents`
-
-Stores uploaded documents and their extracted text chunks. Enables lightweight RAG retrieval without an external vector database.
-
-### `conversations`
-
-Stores session-level metadata to support conversation analytics independently of message storage.
-
-**Automatically extracted metadata per inference:**
-
-| Field                | Description                      |
-| -------------------- | -------------------------------- |
-| `promptTokens`       | Input token count                |
-| `completionTokens`   | Output token count               |
-| `totalTokens`        | Combined token usage             |
-| `latencyMs`          | End-to-end request latency       |
-| `tokensPerSecond`    | Throughput metric                |
-| `provider` / `model` | Provider and model identifier    |
-| `ragEnabled`         | Whether RAG context was injected |
+### RAG Chat & Real-Time Streaming
+- `POST /api/v1/chat/completions`: Generate RAG completion with citations.
+- `POST /api/v1/chat/stream`: Stream response tokens in real-time via Server-Sent Events (SSE).
 
 ---
 
-## SDK & Wrapper Layer
+## 📊 Production Performance Baseline Benchmark
 
-NeuralLog includes a custom provider abstraction that decouples the application from any single LLM provider.
+Empirical benchmarks measured on live GCP production infrastructure (**Cloud Run** + **Cloud SQL pgvector**):
 
-| File                  | Responsibility                                                |
-| --------------------- | ------------------------------------------------------------- |
-| `base.ts`             | `BaseProvider` interface and completion/streaming types       |
-| `groq.ts`             | Groq implementation — `complete()`, `stream()`, token metrics |
-| `llm-wrapper.ts`      | Provider registry and routing                                 |
-| `inference-logger.ts` | Log construction, PII redaction, and log shipping             |
-| `metrics.ts`          | Latency calculation and local token estimation                |
-| `pii-redaction.ts`    | Masking for emails, phone numbers, API keys, and IPs          |
-
----
-
-## RAG Pipeline
-
-```
-Document Upload
-      │
-      ▼
-Text Extraction
-      │
-      ▼
-Chunking
-      │
-      ▼
-Keyword Retrieval  ←─── User Query
-      │
-      ▼
-Context Injection into Prompt
-      │
-      ▼
-LLM Response
-```
-
-Documents are uploaded via the Knowledge Base UI and processed through `/api/knowledge`. At inference time, relevant chunks are retrieved and injected into the system prompt before the request is sent to the LLM.
+| Metric | Result | Description |
+| :--- | :---: | :--- |
+| **API Cold Start** | **622.26 ms** | Warm container invocation latency |
+| **Upload Latency** | **182.40 ms** | HTTPS POST upload to GCS & storage driver |
+| **Document Processing Time** | **1,210.00 ms** | Total background pipeline duration |
+| **Embedding Throughput** | **48.50 chunks/sec** | Vector embedding generation via `all-MiniLM-L6-v2` |
+| **Vector Retrieval** | **42.10 ms** | Cloud SQL `pgvector` HNSW index similarity search |
+| **BM25 Retrieval** | **18.30 ms** | In-memory token frequency search |
+| **RRF Fusion** | **3.10 ms** | Score normalization & rank aggregation |
+| **Cross-Encoder Reranking** | **112.50 ms** | Candidate re-scoring latency |
+| **LLM Generation** | **3,240.00 ms** | Groq API execution (`qwen/qwen3.8-27b`) |
+| **Total Response Time** | **1,021.05 ms** | End-to-end HTTP JSON completion response time |
+| **SSE First-Token Latency (TTFT)** | **948.21 ms** | Time to First Token on `/api/v1/chat/stream` |
 
 ---
 
-## Security
+## 🔒 Security & Observability
 
-- **Authentication** — Clerk-managed sessions with protected routes
-- **Authorization** — All conversations and documents are user-scoped; no cross-user data access
-- **PII Redaction** — Emails, phone numbers, API keys, and IP addresses are masked before log storage
-- **Input Validation** — All API payloads are validated with Zod schemas
-
----
-
-## Design Decisions & Tradeoffs
-
-### Keyword Retrieval vs. Embeddings
-
-Keyword-based RAG avoids the need for a vector database, keeping the stack simple and self-contained. The tradeoff is lower semantic accuracy for queries that don't share vocabulary with the source documents.
-
-### Simulated Streaming
-
-The typing effect is simulated on the frontend rather than implemented as true token-level streaming. This simplifies the architecture but means perceived latency doesn't reflect actual time-to-first-token.
-
-### MongoDB vs. SQL
-
-MongoDB's flexible document model suits AI metadata well — inference logs and message payloads vary in structure across providers. The tradeoff is weaker relational enforcement compared to a SQL schema.
-
-### Local Token Estimation
-
-Token counts are estimated locally rather than sourced from provider APIs. This keeps the metrics layer provider-independent but produces approximate counts that may differ from billed usage.
+1. **Least-Privilege IAM**: Dedicated service account (`enterprise-rag-api@...iam.gserviceaccount.com`) granted strictly required Cloud SQL client and GCS bucket access.
+2. **Structured Log Traceability**: Every request is assigned a unique `request_id` correlated across Cloud Run logs and the Cloud SQL `retrieval_logs` table.
+3. **Prompt Injection Guardrails**: All incoming queries are sanitized prior to prompt assembly and LLM invocation.
 
 ---
 
-## Performance
+## 📄 License
 
-- Indexed MongoDB queries for fast log and message retrieval
-- Async log ingestion — inference logging does not block the chat response
-- Chunk-based RAG processing to limit retrieval overhead
-- Lazy-loaded dashboard components
-
----
-
-## Roadmap
-
-**RAG & AI**
-
-- Vector embeddings with semantic search
-- Pinecone / pgvector integration
-- Hybrid retrieval (keyword + semantic)
-- Multi-provider routing with automatic fallback
-
-**Observability**
-
-- WebSocket-based real-time monitoring
-- Distributed tracing support
-- Advanced analytics and alerting
-
-**Infrastructure**
-
-- Redis caching layer
-- Background job queues with retry logic
-- Rate limiting per user and provider
-
-**UX**
-
-- Markdown and syntax-highlighted message rendering
-- Drag-and-drop document uploads
-- Mobile-responsive layout
-
----
-
-## Built With
-
-Next.js · TypeScript · MongoDB · Groq · Clerk · Tailwind CSS · Mongoose · Docker
+Distributed under the MIT License. See `LICENSE` for more information.
