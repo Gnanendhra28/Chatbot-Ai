@@ -129,6 +129,44 @@ async def get_conversation_detail(
         )
 
 
+@router.get("/{conversation_id}/messages", response_model=List[MessageResponse])
+async def get_conversation_messages(
+    conversation_id: str,
+    principal: UserPrincipal = Depends(get_current_user_principal),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        conv_result = await db.execute(
+            select(Conversation).where(
+                Conversation.id == conversation_id,
+                Conversation.tenant_id == principal.tenant_id
+            )
+        )
+        conv = conv_result.scalar_one_or_none()
+        if not conv:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Conversation '{conversation_id}' not found."
+            )
+
+        msg_result = await db.execute(
+            select(Message)
+            .where(Message.conversation_id == conversation_id)
+            .order_by(Message.created_at.asc())
+        )
+        messages = msg_result.scalars().all()
+        logger.info(f"[Audit Log] Retrieved {len(messages)} messages for conversation '{conversation_id}'")
+        return [MessageResponse.model_validate(m) for m in messages]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching messages for conversation '{conversation_id}': {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to query conversation messages."
+        )
+
+
 @router.post("/{conversation_id}/messages", response_model=PostMessageResponse)
 async def post_message_to_conversation(
     conversation_id: str,

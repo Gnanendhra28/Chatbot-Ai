@@ -100,9 +100,20 @@ export async function getConversationsApi(): Promise<ConversationItem[]> {
 
 export async function getMessagesApi(conversationId: string): Promise<MessageItem[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/conversations/${conversationId}/messages`);
-    if (!res.ok) return [];
-    return await res.json();
+    const res = await fetch(`${API_BASE_URL}/conversations/${conversationId}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.messages)) {
+        return data.messages;
+      }
+      if (Array.isArray(data)) {
+        return data;
+      }
+    }
+    const msgRes = await fetch(`${API_BASE_URL}/conversations/${conversationId}/messages`);
+    if (!msgRes.ok) return [];
+    const msgData = await msgRes.json();
+    return Array.isArray(msgData) ? msgData : (msgData.messages || []);
   } catch {
     return [];
   }
